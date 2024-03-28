@@ -1,0 +1,8 @@
+Things to do:
+
+- create a statistics screen with stats on mood
+
+- entries for other months are in database but no reflected when changing month on Homescreen.
+    likely val currentM by remember { mutableStateOf(currentMonth) }
+    viewModel.getMonthRecords(months.indexOf(currentM)) code not re-running everytime currentmonth changes. FIX
+   
