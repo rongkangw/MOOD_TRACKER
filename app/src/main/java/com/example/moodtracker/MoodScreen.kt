@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.moodtracker.ui.theme.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import kotlin.random.Random
