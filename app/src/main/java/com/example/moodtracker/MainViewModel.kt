@@ -103,6 +103,7 @@ class TestViewModel(private val dao: EntryDayDao): ViewModel()
         viewModelScope.launch { dao.getAverageMood(month).collect{ list -> _countState.value.moodChart = list} }
     }
 
+    //In future use this code for LazyRow of MoodCharts for each month
     fun initMoodChartList() {
         for (i in 0..11) {
             _countState.value.moodChartList.add(ChartMonthItem(i, emptyList()))
@@ -110,16 +111,7 @@ class TestViewModel(private val dao: EntryDayDao): ViewModel()
         for (i in 0..11) {
             viewModelScope.launch { dao.getAverageMood(i).collect{ list -> _countState.value.moodChartList[i].yValues = list} }
         }
-
     }
-
-    fun updateMoodChartList(month: Int) {
-        if (viewModelScope.launch { dao.getAverageMood(month).collect{ list -> _countState.value.moodChart = list} }.isActive){
-            _countState.value.moodChartList[month] = ChartMonthItem(month, _countState.value.moodChart)
-        }
-
-    }
-
 
 
     //DEBUG
