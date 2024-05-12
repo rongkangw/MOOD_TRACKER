@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -44,10 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.moodtracker.ui.theme.*
 
 @Composable
 fun HomeScreen(
+    navController: NavHostController,
     viewModel: TestViewModel
 ) {
     /*
@@ -57,26 +61,30 @@ fun HomeScreen(
     */
     var clickedDay by remember { mutableStateOf<EntryDay?>(null) }
     val currentMonth = viewModel.currentMonth.collectAsStateWithLifecycle().value
+
     Column (modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
         .padding(horizontal = 15.dp, vertical = 45.dp)) {
+
         Row (modifier = Modifier
             .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center)
-        {
+            horizontalArrangement = Arrangement.Center) {
+
             IconButton(onClick = {
                 viewModel.decrementMonth()
             }) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, tint = MaterialTheme.colorScheme.primary, contentDescription = null)
             }
+
             Text(
-                modifier = Modifier.fillMaxWidth(0.60f),
+                modifier = Modifier.fillMaxWidth(0.70f),
                 textAlign = TextAlign.Center,
                 text = months[currentMonth],
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 40.sp,
             )
+
             IconButton(onClick = {
                 viewModel.incrementMonth()
             }) {
@@ -101,7 +109,7 @@ fun HomeScreen(
                         .align(Alignment.CenterHorizontally)
                         .height(230.dp)
                         .clip(shape = RoundedCornerShape(10.dp))
-                        .background(lightgray)
+                        .background(lightgray.copy(alpha = 0.2f))
                         .padding(15.dp),
                         verticalArrangement = Arrangement.spacedBy(5.dp))
                 {
@@ -111,11 +119,29 @@ fun HomeScreen(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 25.sp
                         )
-                        Text(text = it.mood,
+
+                        Text(text = moods[it.mood],
                             color = white,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 25.sp
                         )
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Box(modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModel.setState(it.month, it.day)
+                                    navController.navigate(Screen.Mood.rout)
+
+                                }
+                            ) {
+                                Text("Change Record", textAlign = TextAlign.Center)
+                            }
+                        }
+
                     }
                 }
             }
@@ -137,7 +163,7 @@ fun MoodCalendarV2(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp))
     {
-        items(recordList, key = {key -> key.id}){day ->
+        items(recordList){day ->
             DayCard(mood = day.mood,
                 month = day.month,
                 day = day.day,
@@ -153,7 +179,7 @@ fun MoodCalendarV2(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DayCard (mood : String, month: Int, day : Int, onDayClick: (EntryDay) -> Unit, viewModel: TestViewModel, recordList: List<EntryDay>) {
+fun DayCard (mood : Int, month: Int, day : Int, onDayClick: (EntryDay) -> Unit, viewModel: TestViewModel, recordList: List<EntryDay>) {
     val showDialog = remember { mutableStateOf(false) }
     if (showDialog.value){
         DeletePopup(viewModel = viewModel,
@@ -168,12 +194,24 @@ fun DayCard (mood : String, month: Int, day : Int, onDayClick: (EntryDay) -> Uni
             .fillMaxSize()
             .height(50.dp)
             .combinedClickable(
-                onClick = { onDayClick(recordList[day-1]) },
-                onLongClick = { if(mood != "None"){showDialog.value = true} }
+                onClick = { onDayClick(recordList[day - 1]) },
+                onLongClick = {
+                    if (mood != 0) {
+                        showDialog.value = true
+                    }
+                }
             ),
         shape = RoundedCornerShape(13.dp),
         border = BorderStroke(1.dp, gray),
-        colors = CardDefaults.cardColors(containerColor = if (mood == "None"){ lightgray} else{colors[moods.indexOf(mood)]})
+        colors = CardDefaults.cardColors(
+            containerColor =
+            if (mood == 0){
+                lightgray.copy(alpha = 0.2f)
+            }
+            else{
+                colors[mood]
+            }
+        )
     ) {
         Text(
             modifier = Modifier.offset(x = 8.dp, y = 3.dp),
@@ -196,20 +234,23 @@ fun DeletePopup(
     if (showDialog){
         AlertDialog(
             icon = {Icons.Default.Info},
-            title = { Text("Delete")},
+            title = { Text("Delete?")},
             onDismissRequest = { onDismiss() },
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteEntry(month, day)
-                    println("Entry($month, $day) deleted.")
-                    onDismiss()
-                }) {
-                    Text("Confirm")
+                TextButton(
+                    onClick = {
+                        viewModel.deleteEntry(month, day)
+                        println("Entry($month, $day) deleted.")
+                        onDismiss()
+                    },
+
+                ) {
+                    Text("Confirm", textAlign = TextAlign.Right)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onDismiss() }) {
-                    Text("Dismiss")
+                    Text("Dismiss", textAlign = TextAlign.Left)
                 }
 
             }

@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [EntryDay::class], version = 1)
+@Database(entities = [EntryDay::class], version = 3)
 abstract class EntryDataBase: RoomDatabase() {
     abstract val dao: EntryDayDao
 

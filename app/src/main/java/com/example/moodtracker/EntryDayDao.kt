@@ -12,8 +12,8 @@ interface EntryDayDao {
     @Query("SELECT * FROM entryData WHERE entryData.month = :month")
     fun getMonthRecords(month: Int): Flow<List<EntryDay>>
 
-    @Query("SELECT * FROM entryData WHERE entryData.month = :month and entryData.day = :day")
-    fun getEntry(month: Int, day: Int): Flow<EntryDay>
+    @Query("SELECT month FROM entryData WHERE entryData.month = :month and entryData.day = :day")
+    fun getEntry(month: Int, day: Int): Flow<Int>
 
     @Upsert
     suspend fun upsertEntry(entry : EntryDay)
@@ -25,8 +25,8 @@ interface EntryDayDao {
     suspend fun deleteAllRecords()
 
     @Query("SELECT COUNT(*) FROM entryData WHERE entryData.mood = :mood")
-    fun getNumberOfMood(mood : String): Flow<Int>
+    fun getNumberOfMood(mood : Int): Flow<Int>
 
-    @Query("SELECT mood FROM entryData")
-    fun getAverageMood(): Flow<List<String>>
+    @Query("SELECT mood FROM entryData WHERE entryData.month = :month")
+    fun getAverageMood(month: Int): Flow<List<Int>>
 }
